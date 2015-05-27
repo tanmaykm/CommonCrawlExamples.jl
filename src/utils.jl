@@ -51,11 +51,17 @@ function as_serialized(obj, path::String)
     path
 end
 
-function setup_folders(clean=false)
-    println("Setting up work folders...")
-    clean && isdir(fs_pfx) && rm(fs_pfx; recursive=true)
-    for d in [fs_pfx, part_idx_location, doc_to_id_location, id_to_doc_location, stat_location, docs_location]
-        isdir(d) || mkdir(d)
+function setup_folders(clean::Bool=false, everywhere::Bool=true)
+    if everywhere
+        for p in procs()
+            remotecall_fetch(p, setup_folders, clean, false)
+        end
+    else
+        println("Setting up work folders...")
+        clean && isdir(fs_pfx) && rm(fs_pfx; recursive=true)
+        for d in [fs_pfx, part_idx_location, doc_to_id_location, id_to_doc_location, stat_location, docs_location]
+            isdir(d) || mkdir(d)
+        end
+        nothing
     end
-    nothing
 end
