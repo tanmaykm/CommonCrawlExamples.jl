@@ -48,12 +48,12 @@ function search_index(terms::String; mapto_url::Bool=true, limit::Int=10)
     master_idx = cached_get(part_idx_location, ()->Block(openable(part_idx_location), false, 2))
 
     results = @parallel union for i in 1:nworkers()
-        local_files = {}
+        local_files = Any[]
         for b in localpart(master_idx)
             append!(local_files, b)
         end
         search_results = map(file->search_part_idx(file, terms, mapto_url, limit), local_files)
-        isempty(search_results) ? {} : reduce(union, search_results)
+        isempty(search_results) ? Any[] : reduce(union, search_results)
     end
     if limit > 0
         while length(results) > limit
